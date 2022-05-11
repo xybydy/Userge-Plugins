@@ -130,7 +130,7 @@ async def pservers(message: Message):
 
     if _CREDS  == None:
         await message.edit("Please login to plex first.")    
-        return
+            return
 
     if len(_SERVERS) == 0:
         if len(_get_servers()) == 0:
@@ -168,7 +168,7 @@ async def psearch(message: Message):
     _LATEST_RESULTS = _search(message.input_str)
 
     msg = ""
-    for i in range(_LATEST_RESULTS):
+    for i in range(len(_LATEST_RESULTS)):
         msg+=f"\n{i}. {_LATEST_RESULTS[i].title} ({_LATEST_RESULTS[i].type})"
     
     await message.edit(msg)
