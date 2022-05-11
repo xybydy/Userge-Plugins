@@ -39,6 +39,7 @@ VALID_TYPES: tuple = (Movie, Episode, Show)
 @userge.on_start
 async def _init() -> None:
     global _CREDS  # pylint: disable=global-statement
+    _LOG.info("wqeqeeqeqeqew")
     _LOG.debug("Setting Plex DBase...")
     result = await _SAVED_SETTINGS.find_one({'_id': 'PLEX'}, {'creds': 1})
     _CREDS = pickle.loads(result['creds']) if result else None  # nosec
