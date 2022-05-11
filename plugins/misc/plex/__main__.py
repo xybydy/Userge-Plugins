@@ -193,7 +193,7 @@ async def purl(message: Message):
         if r.clientIdentifier == cid:
             _ACTIVE_SERVER = r
             link = _ACTIVE_SERVER.fetchItem(key)
-            await message.edit(f"Got the link - [{link}]({link}}")
+            await message.edit(f"Got the link - [{link}]({link})")
             return
 
     await message.edit(f"Unable to match URL to any server")
