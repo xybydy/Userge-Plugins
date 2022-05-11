@@ -188,12 +188,11 @@ async def purl(message: Message):
         return
     
     cid = clientid[0]
-    nkey = unquote(key[0][0])
+    key = unquote(key[0][0])
     for r in _SERVERS:
         if r.clientIdentifier == cid:
-            _ACTIVE_SERVER = r
-            _LOG.info(f"item {nkey}")
-            link = _ACTIVE_SERVER.fetchItem("/library/metadata/22362")
+            _ACTIVE_SERVER = r.connect()
+            link = _ACTIVE_SERVER.fetchItem(key)
             await message.edit(f"Got the link - [{link}]({link})")
             return
 
