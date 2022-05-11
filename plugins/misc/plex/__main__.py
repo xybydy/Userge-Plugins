@@ -21,7 +21,8 @@ from plexapi import utils
 from plexapi.exceptions import BadRequest, NotFound
 from plexapi.video import Episode, Movie, Show
 
-from userge import userge, Message, config, get_collection, pool
+from userge import userge, Message, get_collection
+from userge.plugins.misc.download import url_download
 
 
 _CREDS: object = None
@@ -213,13 +214,16 @@ async def purl(message: Message):
     else:
         for item in items:
             for part in item.iterParts():
-                # filename = __get_filename(part)
+                filename = __get_filename(part)
                 url = item.url('%s?download=0' % part.key, )
-                await message.edit(f"Downloading {url}")
+                content = f"{url}|{filename}"
+
+                dl_loc, bune = await url_download(message,content)
+
                 await message.client.send_message(
                     message.chat.id,
-                    caption=f"Downloading {url}",
-                    text = url,
+                    caption=f"Downloading",
+                    text = f"{dl_loc} - {bune}",
                     reply_to=message.message_id
                 )
 
