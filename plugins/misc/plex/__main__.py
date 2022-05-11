@@ -130,7 +130,7 @@ async def pservers(message: Message):
 
     if _CREDS  == None:
         await message.edit("Please login to plex first.")    
-            return
+        return
 
     if len(_SERVERS) == 0:
         if len(_get_servers()) == 0:
