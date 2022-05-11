@@ -94,6 +94,8 @@ def _get_servers() -> list:
 @servers_dec
 def _search(query, search_type=None) -> list:
     global _ACTIVE_SERVER
+    for server in _SERVERS:
+        _ACTIVE_SERVER = server.connect
     results = _ACTIVE_SERVER.search(query)
 
     if search_type:
@@ -205,6 +207,7 @@ async def purl(message: Message):
     for r in _SERVERS:
         if r.clientIdentifier == cid:
             _ACTIVE_SERVER = r.connect()
+            _LOG.info(_ACTIVE_SERVER)
             link = _ACTIVE_SERVER.fetchItem(key)
             await message.edit(f"Got the link - {link}")
             return
