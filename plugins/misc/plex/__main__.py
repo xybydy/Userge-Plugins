@@ -23,6 +23,7 @@ from plexapi.video import Episode, Movie, Show
 
 from userge import userge, Message, get_collection
 from userge.plugins.misc.download import url_download
+from userge.plugins.misc.gdrive import url_download
 
 
 _CREDS: object = None
@@ -190,10 +191,12 @@ async def psearch(message: Message):
 
     await message.edit(msg)
 
-@creds_dec
 @userge.on_cmd("purl", about={'header': "Download given plex url",
-'usage': "{tr}purl [url]",'examples': "{tr}psearch URL",
-"description": "Downloads for the term in active server"})
+                              'usage': "{tr}purl [url]",
+                              'examples': "{tr}psearch [flags] URL",
+                              'flags': {'-g': "gdrive upload"},
+                              'description': "Downloads for the term in active server"})
+@creds_dec
 async def purl(message: Message):
     global _ACTIVE_SERVER
     items: object = None
@@ -219,12 +222,12 @@ async def purl(message: Message):
                 content = f"{url}|{filename}"
 
                 dl_loc, bune = await url_download(message,content)
-
-                await message.client.send_message(
+                await message.edit(
                     message.chat.id,
                     text = f"{dl_loc} - {bune}",
-                    reply_to=message.message_id
                 )
+
+
 
 
     # for r in _SERVERS:
@@ -233,6 +236,13 @@ async def purl(message: Message):
             # link = _ACTIVE_SERVER.fetchItem(key)
             # await message.edit(f"Got the link - {link}")
             # return
+@userge.on_cmd("put", about={'header': "Download given plex url",
+                              'usage': "{tr}purl [url]",
+                              'examples': "{tr}psearch [flags] URL",
+                              'flags': {'-g': "gdrive upload"},
+                              'description': "Downloads for the term in active server"})
+async def pit(message: Message):
+    await message.edit(".ls")
 
 
 def get_item_from_url(url, account=None):
