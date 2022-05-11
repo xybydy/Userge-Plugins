@@ -72,12 +72,25 @@ def creds_dec(func):
             await self._message.edit("Please run `.plogin` first", del_in=5)
     return wrapper
 
+def servers_dec(func):
+    """ decorator for check CREDS """
+    @wraps(func)
+    async def wrapper(self):
+        # pylint: disable=protected-access
+        if _SERVERS:
+            await func(self)
+        else:
+            _get_servers()
+            await func(self)
+    return wrapper
+
 def _get_servers() -> list:
     global _SERVERS
 
     _SERVERS = [s for s in _CREDS.resources() if 'server' in s.provides]
     return _SERVERS
 
+@servers_dec
 def _search(query, search_type=None) -> list:
     global _ACTIVE_SERVER
     results = _ACTIVE_SERVER.search(query)
@@ -155,6 +168,7 @@ async def pservers(message: Message):
 
         await message.edit(f"The servers are:\n{msg}")
 
+@creds_dec
 @userge.on_cmd("psearch", about={'header': "Search term in plex servers",
 'usage': "{tr}psearch [term]",'examples': "{tr}psearch blade runner",
 "description": "Search for the term in active server"})
@@ -174,6 +188,7 @@ async def psearch(message: Message):
     
     await message.edit(msg)
 
+@creds_dec
 @userge.on_cmd("purl", about={'header': "Download given plex url",
 'usage': "{tr}purl [url]",'examples': "{tr}psearch URL",
 "description": "Downloads for the term in active server"})
@@ -213,8 +228,6 @@ def get_item_from_url(url, account=None):
         raise SystemExit('Unknown or ambiguous client id: %s' % clientid)
     server = servers[0].connect()
     return server.fetchItem(key)
-
-
 
 def download_url(url, account):
     items = get_item_from_url(url, account)
