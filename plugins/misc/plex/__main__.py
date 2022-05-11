@@ -192,8 +192,8 @@ async def purl(message: Message):
     for r in _SERVERS:
         if r.clientIdentifier == cid:
             _ACTIVE_SERVER = r
-            link = _ACTIVE_SERVER.fetchItem(nkey)
             _LOG.debug(f"item {nkey}")
+            link = _ACTIVE_SERVER.fetchItem(nkey)
             await message.edit(f"Got the link - [{link}]({link})")
             return
 
