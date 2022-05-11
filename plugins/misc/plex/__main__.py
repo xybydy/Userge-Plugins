@@ -170,40 +170,33 @@ async def psearch(message: Message):
     msg = ""
 
     for i in range(len(_LATEST_RESULTS)):
-        msg+=f"\n{i}. {_LATEST_RESULTS[i].title} ({_LATEST_RESULTS[i].type})"
+        msg+=f"\n{i}. {_LATEST_RESULTS[i].title} {_LATEST_RESULTS[i].year} ({_LATEST_RESULTS[i].type})"
     
     await message.edit(msg)
 
-def search_for_item(url=None, account=None):
-    global server
-    if url: return get_item_from_url(url, account)
-    servers = [s for s in account.resources() if 'server' in s.provides]
-    server = utils.choose('Choose a Server', servers, 'name').connect()
-    query = input('What are you looking for?: ')
-    item = []
-    items = [i for i in server.search(query) if i.__class__ in VALID_TYPES]
-    items = utils.choose('Choose result', items, lambda x: '(%s) %s' % (x.type.title(), x.title[0:60]))
+@userge.on_cmd("purl", about={'header': "Download given plex url",
+'usage': "{tr}purl [url]",'examples': "{tr}psearch URL",
+"description": "Downloads for the term in active server"})
+async def purl(message: Message):
+    global _ACTIVE_SERVER
 
-    if not isinstance(items, list):
-        items = [items]
+    url = message.input_str
+    clientid = re.findall('[a-f0-9]{40}', url)
+    key = re.findall('key=(.*?)(&.*)?$', url)
+    if not clientid or not key:
+        await message.edit(f"Unable to parse URL")
+        return
+    
+    cid = clientid[0]
+    key = unquote(key[0][0])
+    for r in _SERVERS:
+        if r.clientIdentifier == cid:
+            _ACTIVE_SERVER = r
+            link = _ACTIVE_SERVER.fetchItem(key)
+            await message.edit(f"Got the link - [{link}]({link}}")
+            return
 
-    for i in items:
-        if isinstance(i, Show):
-            display = lambda i: '%s %s %s' % (i.grandparentTitle, i.seasonEpisode, i.title)
-            selected_eps = utils.choose('Choose episode', i.episodes(), display)
-            if isinstance(selected_eps, list):
-                item += selected_eps
-            else:
-                item.append(selected_eps)
-
-        else:
-            item.append(i)
-
-    if not isinstance(item, list):
-        item = [item]
-
-    return item
-
+    await message.edit(f"Unable to match URL to any server")
 
 def get_item_from_url(url, account=None):
     global server
