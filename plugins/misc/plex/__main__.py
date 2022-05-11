@@ -77,10 +77,11 @@ def servers_dec(func):
     @wraps(func)
     async def wrapper(self):
         # pylint: disable=protected-access
-        if _SERVERS:
+        if _SERVERS > 0:
             await func(self)
         else:
             _get_servers()
+            _LOG.info("server decorator works")
             await func(self)
     return wrapper
 
@@ -121,7 +122,6 @@ async def plogin(message: Message):
                 username = trimmed_uname
                 password = trimmed_passwd 
             try:
-                _LOG.debug(Opts.username,Opts.password)
                 account = utils.getMyPlexAccount(Opts)
             except BadRequest as e:
                 await message.edit("Plex login failed. Please check logs.")
@@ -161,14 +161,12 @@ async def pservers(message: Message):
             _ACTIVE_SERVER = _SERVERS[query].connect()
             await message.edit(f"Connected to {_SERVERS[query].name}")
     else:
-        _LOG.debug(_SERVERS)
         msg = ""
         for i in range(len(_SERVERS)):
             msg+=f"{i}. {_SERVERS[i].name}\n"
 
         await message.edit(f"The servers are:\n{msg}")
 
-@creds_dec
 @userge.on_cmd("psearch", about={'header': "Search term in plex servers",
 'usage': "{tr}psearch [term]",'examples': "{tr}psearch blade runner",
 "description": "Search for the term in active server"})
