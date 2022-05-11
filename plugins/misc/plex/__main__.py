@@ -7,16 +7,18 @@
 
 """ plex api support """
 
+from ast import Not
 import asyncio
-import argparse
+import ntpath
 import os
 import pickle
 import re
 from functools import wraps
 from urllib.parse import unquote
+from xml.dom import NotFoundErr
 
 from plexapi import utils
-from plexapi.exceptions import BadRequest
+from plexapi.exceptions import BadRequest, NotFound
 from plexapi.video import Episode, Movie, Show
 
 from userge import userge, Message, config, get_collection, pool
@@ -103,7 +105,7 @@ def _search(query, search_type=None) -> list:
     return [i for i in results if i.__class__ in VALID_TYPES]
 
 def __get_filename(part):
-    return os.path.basename(part.file)
+    return ntpath.basename(part.file)
 
 @userge.on_cmd("plogin", about={'header': "Login Plex",
 'usage': "{tr}plogin [username password]",'examples': "{tr}plogin uname passwd"})
@@ -193,6 +195,7 @@ async def psearch(message: Message):
 "description": "Downloads for the term in active server"})
 async def purl(message: Message):
     global _ACTIVE_SERVER
+    items: object = None
 
     url = message.input_str
     clientid = re.findall('[a-f0-9]{40}', url)
@@ -203,8 +206,23 @@ async def purl(message: Message):
 
     # cid = clientid[0]
     key = unquote(key[0][0])
-    link = _ACTIVE_SERVER.fetchItem(key)
-    _LOG.info(link)
+    try:
+        items = _ACTIVE_SERVER.fetchItem(key)
+    except NotFound:
+        await message.edit(f"Unable to find URL in the server")
+    else:
+        for item in items:
+            for part in item.iterParts():
+                # filename = __get_filename(part)
+                url = item.url('%s?download=0' % part.key, )
+                await message.edit(f"Downloading {url}")
+                await message.client.send_message(
+                    message.chat.id,
+                    caption=f"Downloading {url}",
+                    text = url,
+                    reply_to=message.message_id
+                )
+
 
     # for r in _SERVERS:
         # if r.clientIdentifier == cid:
@@ -213,7 +231,6 @@ async def purl(message: Message):
             # await message.edit(f"Got the link - {link}")
             # return
 
-    await message.edit(f"Unable to match URL to any server")
 
 def get_item_from_url(url, account=None):
     global server
@@ -241,8 +258,8 @@ def download_url(url, account):
                     os.mkdir(episode.parentTitle)
                 for part in episode.iterParts():
                     filename = __get_filename(part)
-                    url = item.url('%s?download=1' % part.key, )
+                    url = item.url('%s?download=0' % part.key, )
         else:
             for part in item.iterParts():
                 filename = __get_filename(part)
-                url = item.url('%s?download=1' % part.key, )
+                url = item.url('%s?download=0' % part.key, )
