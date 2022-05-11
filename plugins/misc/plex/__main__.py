@@ -240,7 +240,7 @@ async def purl(message: Message):
                               'flags': {'-g': "gdrive upload"},
                               'description': "Downloads for the term in active server"})
 async def pit(message: Message):
-    await message.edit(".ls")
+    await message.client.send_message(message.chat.id,".ls")
 
 
 def get_item_from_url(url, account=None):
