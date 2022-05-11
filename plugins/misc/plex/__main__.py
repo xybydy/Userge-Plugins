@@ -17,7 +17,6 @@ from urllib.parse import unquote
 
 from plexapi import utils
 from plexapi.exceptions import BadRequest
-from plexapi.myplex import MyPlexAccount
 from plexapi.video import Episode, Movie, Show
 
 from userge import userge, Message, config, get_collection, pool
@@ -39,7 +38,6 @@ VALID_TYPES: tuple = (Movie, Episode, Show)
 @userge.on_start
 async def _init() -> None:
     global _CREDS  # pylint: disable=global-statement
-    _LOG.info("wqeqeeqeqeqew")
     _LOG.debug("Setting Plex DBase...")
     result = await _SAVED_SETTINGS.find_one({'_id': 'PLEX'}, {'creds': 1})
     _CREDS = pickle.loads(result['creds']) if result else None  # nosec
@@ -95,13 +93,13 @@ def _get_servers() -> list:
 @servers_dec
 def _search(query, search_type=None) -> list:
     global _ACTIVE_SERVER
-    for server in _SERVERS:
-        _ACTIVE_SERVER = server.connect
+    # for server in _SERVERS:
+    #     _ACTIVE_SERVER = server.connect()
     results = _ACTIVE_SERVER.search(query)
 
     if search_type:
         return [i for i in results if i.__class__ == search_type]
-    
+
     return [i for i in results if i.__class__ in VALID_TYPES]
 
 def __get_filename(part):
@@ -123,7 +121,7 @@ async def plogin(message: Message):
         else:
             class Opts:
                 username = trimmed_uname
-                password = trimmed_passwd 
+                password = trimmed_passwd
             try:
                 account = utils.getMyPlexAccount(Opts)
             except BadRequest as e:
@@ -145,12 +143,12 @@ async def pservers(message: Message):
     global _ACTIVE_SERVER
 
     if _CREDS  == None:
-        await message.edit("Please login to plex first.")    
+        await message.edit("Please login to plex first.")
         return
 
     if len(_SERVERS) == 0:
         if len(_get_servers()) == 0:
-            await message.edit("There is no plex server available")    
+            await message.edit("There is no plex server available")
             return
 
     query = message.input_str.strip()
@@ -179,14 +177,14 @@ async def psearch(message: Message):
     if not _ACTIVE_SERVER:
         await message.edit("There is no active server. Please choose a server first.")
         return
-    
+
     _LATEST_RESULTS = _search(message.input_str)
 
     msg = ""
 
     for i in range(len(_LATEST_RESULTS)):
         msg+=f"\n{i}. {_LATEST_RESULTS[i].title} {_LATEST_RESULTS[i].year} ({_LATEST_RESULTS[i].type})"
-    
+
     await message.edit(msg)
 
 @creds_dec
@@ -202,16 +200,18 @@ async def purl(message: Message):
     if not clientid or not key:
         await message.edit(f"Unable to parse URL")
         return
-    
-    cid = clientid[0]
+
+    # cid = clientid[0]
     key = unquote(key[0][0])
-    for r in _SERVERS:
-        if r.clientIdentifier == cid:
-            _ACTIVE_SERVER = r.connect()
-            _LOG.info(_ACTIVE_SERVER)
-            link = _ACTIVE_SERVER.fetchItem(key)
-            await message.edit(f"Got the link - {link}")
-            return
+    link = _ACTIVE_SERVER.fetchItem(key)
+    _LOG.info(link)
+
+    # for r in _SERVERS:
+        # if r.clientIdentifier == cid:
+            # _ACTIVE_SERVER = r.connect()
+            # link = _ACTIVE_SERVER.fetchItem(key)
+            # await message.edit(f"Got the link - {link}")
+            # return
 
     await message.edit(f"Unable to match URL to any server")
 
