@@ -31,7 +31,7 @@ _LATEST_RESULTS: list = []
 
 _LOG = userge.getLogger(__name__)
 _SAVED_SETTINGS = get_collection("CONFIGS")
-.
+
 
 VALID_TYPES: tuple = (Movie, Episode, Show)
 
