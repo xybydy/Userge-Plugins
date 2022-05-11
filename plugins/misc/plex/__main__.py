@@ -26,18 +26,15 @@ from userge import userge, Message, config, get_collection, pool
 _CREDS: object = None
 _SERVERS: list = []
 _ACTIVE_SERVER: object = None
+_LATEST_RESULTS: list = []
 
 
 _LOG = userge.getLogger(__name__)
 _SAVED_SETTINGS = get_collection("CONFIGS")
+.
 
+VALID_TYPES: tuple = (Movie, Episode, Show)
 
-_VALID_TYPES: tuple = (Movie, Episode, Show)
-SESSION_FILE = 'session'
-
-server = None
-
-user = None
 
 @userge.on_start
 async def _init() -> None:
@@ -75,12 +72,23 @@ def creds_dec(func):
             await self._message.edit("Please run `.plogin` first", del_in=5)
     return wrapper
 
-def _get_servers():
+def _get_servers() -> list:
     global _SERVERS
-    
+
     _SERVERS = [s for s in _CREDS.resources() if 'server' in s.provides]
     return _SERVERS
 
+def _search(query, search_type=None) -> list:
+    global _ACTIVE_SERVER
+    results = _ACTIVE_SERVER.search(query)
+
+    if search_type:
+        return [i for i in results if i.__class__ == search_type]
+    
+    return [i for i in results if i.__class__ in VALID_TYPES]
+
+def __get_filename(part):
+    return os.path.basename(part.file)
 
 @userge.on_cmd("plogin", about={'header': "Login Plex",
 'usage': "{tr}plogin [username password]",'examples': "{tr}plogin uname passwd"})
@@ -112,9 +120,6 @@ async def plogin(message: Message):
 
 # u = User(session=account._session, token=account.authenticationToken)
 
-def __get_filename(part):
-    return os.path.basename(part.file)
-
 @userge.on_cmd("pserver", about={'header': "Get Plex Server List",
 'usage': "{tr}pserver\n{tr}pserver [no of server]",'examples': "{tr}pserver 1",
 "description": "Command to get server list and set default active server"})
@@ -122,27 +127,51 @@ async def pservers(message: Message):
     """ plex list servers """
     global _SERVERS
     global _ACTIVE_SERVER
+
+    if _CREDS  == None:
+        await message.edit("Please login to plex first.")    
+            return
+
     if len(_SERVERS) == 0:
         if len(_get_servers()) == 0:
             await message.edit("There is no plex server available")    
             return
-    inp = message.input_str.strip()
-    if inp:
+
+    query = message.input_str.strip()
+    if query:
         try:
-            inp = int(inp)
+            query = int(query)
         except ValueError as e:
             await message.edit("Invalid input for plex server number. Please enter only the server number.")
         else:
-            _SERVERS[inp].connect()
-            await message.edit(f"Connected to {_SERVERS[inp].name}")
+            await message.edit(f"Connecteding to {_SERVERS[query].name}")
+            _ACTIVE_SERVER = _SERVERS[query].connect()
+            await message.edit(f"Connected to {_SERVERS[query].name}")
     else:
         _LOG.debug(_SERVERS)
         msg = ""
         for i in range(len(_SERVERS)):
             msg+=f"{i}. {_SERVERS[i].name}\n"
 
-        await message.edit("The servers are:\n{}".format(msg))
+        await message.edit(f"The servers are:\n{msg}")
 
+@userge.on_cmd("psearch", about={'header': "Search term in plex servers",
+'usage': "{tr}psearch [term]",'examples': "{tr}psearch blade runner",
+"description": "Search for the term in active server"})
+async def psearch(message: Message):
+    global _LATEST_RESULTS
+
+    if not _ACTIVE_SERVER:
+        await message.edit("There is no active server. Please choose a server first.")
+        return
+    
+    _LATEST_RESULTS = _search(message.input_str)
+
+    msg = ""
+    for i in range(_LATEST_RESULTS):
+        msg+=f"\n{i}. {_LATEST_RESULTS[i].title} ({_LATEST_RESULTS[i].type})"
+    
+    await message.edit(msg)
 
 def search_for_item(url=None, account=None):
     global server
@@ -151,7 +180,7 @@ def search_for_item(url=None, account=None):
     server = utils.choose('Choose a Server', servers, 'name').connect()
     query = input('What are you looking for?: ')
     item = []
-    items = [i for i in server.search(query) if i.__class__ in _VALID_TYPES]
+    items = [i for i in server.search(query) if i.__class__ in VALID_TYPES]
     items = utils.choose('Choose result', items, lambda x: '(%s) %s' % (x.type.title(), x.title[0:60]))
 
     if not isinstance(items, list):
