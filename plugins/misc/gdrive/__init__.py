@@ -20,3 +20,5 @@ G_DRIVE_CLIENT_SECRET = secured_env("G_DRIVE_CLIENT_SECRET")
 G_DRIVE_PARENT_ID = os.environ.get("G_DRIVE_PARENT_ID")
 G_DRIVE_INDEX_LINK = os.environ.get("G_DRIVE_INDEX_LINK")
 G_DRIVE_IS_TD = bool(os.environ.get("G_DRIVE_IS_TD"))
+
+from .gdrive import Worker
