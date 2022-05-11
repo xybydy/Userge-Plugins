@@ -23,6 +23,7 @@ from plexapi.video import Episode, Movie, Show
 
 from userge import userge, Message, get_collection
 from userge.plugins.misc.download import url_download
+from userge.plugins.misc.gdrive import Worker
 
 _CREDS: object = None
 _SERVERS: list = []
@@ -220,10 +221,8 @@ async def purl(message: Message):
                 content = f"{url}|{filename}"
 
                 dl_loc, bune = await url_download(message,content)
-                await message.edit(
-                    message.chat.id,
-                    text = f"{dl_loc} - {bune}",
-                )
+                _LOG.info(vars(message))
+                # Worker(message).upload()
 
 
 
