@@ -161,7 +161,7 @@ async def pservers(message: Message):
         except ValueError as e:
             await message.edit("Invalid input for plex server number. Please enter only the server number.")
         else:
-            await message.edit(f"Connecteding to {_SERVERS[query].name}")
+            await message.edit(f"Connecting to {_SERVERS[query].name}")
             _ACTIVE_SERVER = _SERVERS[query].connect()
             await message.edit(f"Connected to {_SERVERS[query].name}")
     else:
@@ -222,7 +222,6 @@ async def purl(message: Message):
 
                 await message.client.send_message(
                     message.chat.id,
-                    caption=f"Downloading",
                     text = f"{dl_loc} - {bune}",
                     reply_to=message.message_id
                 )
