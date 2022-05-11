@@ -168,6 +168,7 @@ async def psearch(message: Message):
     _LATEST_RESULTS = _search(message.input_str)
 
     msg = ""
+    
     for i in range(len(_LATEST_RESULTS)):
         msg+=f"\n{i}. {_LATEST_RESULTS[i].title} ({_LATEST_RESULTS[i].type})"
     
