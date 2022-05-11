@@ -221,10 +221,6 @@ async def purl(message: Message):
                 content = f"{url}|{filename}"
 
                 dl_loc, bune = await url_download(message,content)
-                _LOG.info(vars(message))
-                # Worker(message).upload()
-
-
 
 
     # for r in _SERVERS:
