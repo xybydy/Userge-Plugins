@@ -23,6 +23,7 @@ from plexapi.video import Episode, Movie, Show
 
 from userge import userge, Message, get_collection
 from userge.plugins.misc.download import url_download
+from userge.utils.exceptions import ProcessCanceled
 
 _CREDS: object = None
 _SERVERS: list = []
@@ -192,7 +193,6 @@ async def psearch(message: Message):
 @userge.on_cmd("purl", about={'header': "Download given plex url",
                               'usage': "{tr}purl [url]",
                               'examples': "{tr}psearch [flags] URL",
-                              'flags': {'-g': "gdrive upload"},
                               'description': "Downloads for the term in active server"})
 @creds_dec
 async def purl(message: Message):
@@ -219,52 +219,11 @@ async def purl(message: Message):
                 url = item.url('%s?download=0' % part.key, )
                 content = f"{url}|{filename}"
 
-                dl_loc, bune = await url_download(message,content)
-
-
-    # for r in _SERVERS:
-        # if r.clientIdentifier == cid:
-            # _ACTIVE_SERVER = r.connect()
-            # link = _ACTIVE_SERVER.fetchItem(key)
-            # await message.edit(f"Got the link - {link}")
-            # return
-@userge.on_cmd("put", about={'header': "Download given plex url",
-                              'usage': "{tr}purl [url]",
-                              'examples': "{tr}psearch [flags] URL",
-                              'flags': {'-g': "gdrive upload"},
-                              'description': "Downloads for the term in active server"})
-async def pit(message: Message):
-    await message.client.send_message(message.chat.id,".ls")
-
-
-def get_item_from_url(url, account=None):
-    global server
-    # Parse the ClientID and Key from the URL
-    clientid = re.findall('[a-f0-9]{40}', url)
-    key = re.findall('key=(.*?)(&.*)?$', url)
-    if not clientid or not key:
-        raise SystemExit('Cannot parse URL: %s' % url)
-    clientid = clientid[0]
-    key = unquote(key[0][0])
-    # Connect to the server and fetch the item
-    servers = [r for r in account.resources() if r.clientIdentifier == clientid]
-    if len(servers) != 1:
-        raise SystemExit('Unknown or ambiguous client id: %s' % clientid)
-    server = servers[0].connect()
-    return server.fetchItem(key)
-
-def download_url(url, account):
-    items = get_item_from_url(url, account)
-
-    for item in items:
-        if isinstance(item, Show):
-            for episode in item.episodes():
-                if not os.path.exists(episode.parentTitle):
-                    os.mkdir(episode.parentTitle)
-                for part in episode.iterParts():
-                    filename = __get_filename(part)
-                    url = item.url('%s?download=0' % part.key, )
-        else:
-            for part in item.iterParts():
-                filename = __get_filename(part)
-                url = item.url('%s?download=0' % part.key, )
+                try:
+                    dl_loc, d_in = await url_download(message,content)
+                except ProcessCanceled:
+                    await message.canceled()
+                except Exception as e_e:  # pylint: disable=broad-except
+                    await message.err(str(e_e))
+                else:
+                    await message.edit(f"Downloaded to `{dl_loc}` in {d_in} seconds")
