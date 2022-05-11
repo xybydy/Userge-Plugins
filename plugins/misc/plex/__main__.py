@@ -23,8 +23,6 @@ from plexapi.video import Episode, Movie, Show
 
 from userge import userge, Message, get_collection
 from userge.plugins.misc.download import url_download
-from userge.plugins.misc.gdrive import url_download
-
 
 _CREDS: object = None
 _SERVERS: list = []
