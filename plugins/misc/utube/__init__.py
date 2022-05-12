@@ -8,5 +8,4 @@
 
 """ work with youtube """
 
-import os
-from .methods import _yt_description, _yt_getInfo, _tubeDl, _mp3Dl
+from .methods import _yt_description, _yt_getInfo, _tubeDl, _mp3Dl, YTDL_PYMOD
