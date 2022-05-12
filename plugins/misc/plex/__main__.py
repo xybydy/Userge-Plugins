@@ -261,9 +261,10 @@ async def purl(message: Message):
                              for _ in range(20 - floor(percentage / 5)))))
             userge.loop.create_task(message.edit(out))
 
-
+    _LOG.info("buraya kadar geldik")
     key = unquote(key[0][0])
     try:
+        _LOG.info("item key de alindi")
         items = _ACTIVE_SERVER.fetchItem(key)
     except NotFound:
         await message.edit(f"Unable to find URL in the server")
@@ -282,8 +283,9 @@ async def purl(message: Message):
                 # except Exception as e_e:  # pylint: disable=broad-except
                 #     await message.err(str(e_e))
                 #     return
-
+                _LOG.info("download basladi")
                 retcode = await download(url,filename,__progress)
+                _LOG.info(f"download bitti {retcode}")
                 if retcode == 0:
                     await message.edit(f"**PLEX DOWNLOAD completed in {round(time() - startTime)} seconds**\n")
                 else:
