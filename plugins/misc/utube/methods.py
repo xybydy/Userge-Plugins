@@ -12,7 +12,7 @@ from userge import userge, config, pool
 from userge.utils import get_custom_import_re
 from ..upload import upload
 
-ytdl = get_custom_import_re(YTDL_PYMOD)
+ytdl = get_custom_import_re(utube.YTDL_PYMOD)
 
 LOGGER = userge.getLogger(__name__)
 
