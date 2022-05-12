@@ -20,6 +20,7 @@ from plexapi import utils
 from plexapi.exceptions import BadRequest, NotFound
 from plexapi.video import Episode, Movie, Show
 
+from userge.utils import get_custom_import_re
 from userge import userge, Message, get_collection
 from userge.plugins.misc.download import url_download
 from userge.utils.exceptions import ProcessCanceled
