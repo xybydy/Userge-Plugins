@@ -223,7 +223,8 @@ async def purl(message: Message):
                     dl_loc, d_in = await url_download(message,content)
                 except ProcessCanceled:
                     await message.canceled()
+                    return
                 except Exception as e_e:  # pylint: disable=broad-except
                     await message.err(str(e_e))
-                else:
-                    await message.edit(f"Downloaded to `{dl_loc}` in {d_in} seconds")
+                    return
+                await message.edit(f"Downloaded to `{dl_loc}` in {d_in} seconds") if dl_loc
