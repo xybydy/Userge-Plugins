@@ -100,7 +100,7 @@ def _get_servers() -> list:
 def download(url, filename, prog):
     dl_loc = os.path.join(config.Dynamic.DOWN_PATH, filename)
     
-    ydl_opts = {
+    _opts = {
             'outtmpl': dl_loc,
             'retries':999,
             'logger': _LOG,
