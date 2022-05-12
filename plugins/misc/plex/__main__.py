@@ -15,6 +15,7 @@ import re
 from functools import wraps
 from urllib.parse import unquote
 from time import time
+from math import floor
 
 from plexapi import utils
 from plexapi.exceptions import BadRequest, NotFound
