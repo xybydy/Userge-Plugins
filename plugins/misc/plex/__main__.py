@@ -7,7 +7,6 @@
 
 """ plex api support """
 
-from ast import Not
 import asyncio
 import ntpath
 import os
@@ -15,7 +14,7 @@ import pickle
 import re
 from functools import wraps
 from urllib.parse import unquote
-from xml.dom import NotFoundErr
+from time import time
 
 from plexapi import utils
 from plexapi.exceptions import BadRequest, NotFound
@@ -31,12 +30,16 @@ _ACTIVE_SERVER: object = None
 _LATEST_RESULTS: list = []
 
 
+
+
 _LOG = userge.getLogger(__name__)
 _SAVED_SETTINGS = get_collection("CONFIGS")
 
 
 VALID_TYPES: tuple = (Movie, Episode, Show)
 
+YTDL_PYMOD = os.environ.get("YOUTUBE_DL_PATH", "yt_dlp")
+ytdl = get_custom_import_re(YTDL_PYMOD)
 
 @userge.on_start
 async def _init() -> None:
@@ -92,6 +95,26 @@ def _get_servers() -> list:
 
     _SERVERS = [s for s in _CREDS.resources() if 'server' in s.provides]
     return _SERVERS
+
+def download(url, filename, prog):
+    dl_loc = os.path.join(config.Dynamic.DOWN_PATH, filename)
+    
+    ydl_opts = {
+            'outtmpl': dl_loc,
+            'retries':999,
+            'logger': _LOG,
+            'progress_hooks': [prog],
+    }
+
+    try:
+        x = ytdl.YoutubeDL(_opts)
+        dloader = x.download(url)
+    except Exception as y_e:  # pylint: disable=broad-except
+        _LOG.exception(y_e)
+        return y_e
+    else:
+        return dloader
+
 
 @servers_dec
 def _search(query, search_type=None) -> list:
@@ -199,6 +222,7 @@ async def purl(message: Message):
     global _ACTIVE_SERVER
     items: object = None
 
+    startTime = c_time = time()
     url = message.input_str
     clientid = re.findall('[a-f0-9]{40}', url)
     key = re.findall('key=(.*?)(&.*)?$', url)
@@ -206,7 +230,35 @@ async def purl(message: Message):
         await message.edit(f"Unable to parse URL")
         return
 
-    # cid = clientid[0]
+    def __progress(data: dict):
+        nonlocal edited, c_time
+        diff = time() - c_time
+        if (
+            data['status'] == "downloading"
+            and (not edited or diff >= config.Dynamic.EDIT_SLEEP_TIMEOUT)
+        ):
+            c_time = time()
+            edited = True
+            eta = data.get('eta')
+            speed = data.get('speed')
+            if not (eta and speed):
+                return
+            out = "**Speed** >> {}/s\n**ETA** >> {}\n".format(
+                humanbytes(speed), time_formatter(eta))
+            out += f'**File Name** >> `{data["filename"]}`\n\n'
+            current = data.get('downloaded_bytes')
+            total = data.get("total_bytes")
+            if current and total:
+                percentage = int(current) * 100 / int(total)
+                out += f"Progress >> {int(percentage)}%\n"
+                out += "[{}{}]".format(
+                    ''.join((config.FINISHED_PROGRESS_STR
+                             for _ in range(floor(percentage / 5)))),
+                    ''.join((config.UNFINISHED_PROGRESS_STR
+                             for _ in range(20 - floor(percentage / 5)))))
+            userge.loop.create_task(message.edit(out))
+
+
     key = unquote(key[0][0])
     try:
         items = _ACTIVE_SERVER.fetchItem(key)
@@ -219,16 +271,17 @@ async def purl(message: Message):
                 url = item.url('%s?download=0' % part.key, )
                 content = f"{url}|{filename}"
 
-                try:
-                    dl_loc, d_in = await url_download(message,content)
-                except ProcessCanceled:
-                    await message.canceled()
-                    return
-                except Exception as e_e:  # pylint: disable=broad-except
-                    await message.err(str(e_e))
-                    return
-    
-                if dl_loc:
-                    await message.edit(f"Downloaded to `{dl_loc}` in {d_in} seconds")
+                # try:
+                    # dl_loc, d_in = await url_download(message,content)
+                # except ProcessCanceled:
+                #     await message.canceled()
+                #     return
+                # except Exception as e_e:  # pylint: disable=broad-except
+                #     await message.err(str(e_e))
+                #     return
+
+                retcode = await download(url,filename,__progress)
+                if retcode == 0:
+                    await message.edit(f"**PLEX DOWNLOAD completed in {round(time() - startTime)} seconds**\n")
                 else:
-                    await message.err(f"Unknown error on plex")
+                    await message.edit(str(retcode))    
