@@ -8,6 +8,8 @@
 #
 # All rights reserved.
 
+import os
+
 from userge import userge, config, pool
 from userge.utils import get_custom_import_re
 from ..upload import upload
