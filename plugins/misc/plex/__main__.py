@@ -222,6 +222,7 @@ async def purl(message: Message):
     global _ACTIVE_SERVER
     items: object = None
 
+    edited = False
     startTime = c_time = time()
     url = message.input_str
     clientid = re.findall('[a-f0-9]{40}', url)
