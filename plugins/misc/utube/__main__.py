@@ -21,8 +21,6 @@ from userge.utils import time_formatter, humanbytes, get_custom_import_re
 from .. import utube
 from ..upload import upload
 
-ytdl = get_custom_import_re(utube.YTDL_PYMOD)
-
 LOGGER = userge.getLogger(__name__)
 
 @userge.on_cmd("ytinfo", about={'header': "Get info from ytdl",
@@ -33,7 +31,7 @@ async def ytinfo(message: Message):
     """ get info from a link """
     await message.edit("Hold on \u23f3 ..")
     _exracted = await utube._yt_getInfo(message.input_or_reply_str)
-    if isinstance(_exracted, ytdl.utils.YoutubeDLError):
+    if isinstance(_exracted, utube.ytdl.utils.YoutubeDLError):
         await message.err(str(_exracted))
         return
     out = """
@@ -157,7 +155,7 @@ async def ytdes(message: Message):
     """ get description from a link """
     await message.edit("Hold on \u23f3 ..")
     description = await utube._yt_description(message.input_or_reply_str)
-    if isinstance(description, ytdl.utils.YoutubeDLError):
+    if isinstance(description, utube.ytdl.utils.YoutubeDLError):
         await message.err(str(description))
         return
     if description:
