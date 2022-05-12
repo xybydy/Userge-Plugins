@@ -16,7 +16,7 @@ from ..upload import upload
 
 YTDL_PYMOD = os.environ.get("YOUTUBE_DL_PATH", "yt_dlp")
 
-ytdl = get_custom_import_re(utube.YTDL_PYMOD)
+ytdl = get_custom_import_re(YTDL_PYMOD)
 
 LOGGER = userge.getLogger(__name__)
 
