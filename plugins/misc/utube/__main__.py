@@ -25,7 +25,6 @@ ytdl = get_custom_import_re(utube.YTDL_PYMOD)
 
 LOGGER = userge.getLogger(__name__)
 
-
 @userge.on_cmd("ytinfo", about={'header': "Get info from ytdl",
                                 'description': 'Get information of the link without downloading',
                                 'examples': '{tr}ytinfo link',
@@ -33,7 +32,7 @@ LOGGER = userge.getLogger(__name__)
 async def ytinfo(message: Message):
     """ get info from a link """
     await message.edit("Hold on \u23f3 ..")
-    _exracted = await _yt_getInfo(message.input_or_reply_str)
+    _exracted = await utube._yt_getInfo(message.input_or_reply_str)
     if isinstance(_exracted, ytdl.utils.YoutubeDLError):
         await message.err(str(_exracted))
         return
@@ -114,28 +113,28 @@ async def ytDown(message: Message):
             return await message.err(f"Have you checked {config.CMD_TRIGGER}help ytdl ?")
 
         if 'm' in message.flags:
-            retcode = await _mp3Dl([message.filtered_input_str], __progress, startTime)
+            retcode = await utube._mp3Dl([message.filtered_input_str], __progress, startTime)
         elif all(k in message.flags for k in ("a", "v")):
             # 1st format must contain the video
             desiredFormat = '+'.join([desiredFormat2, desiredFormat1])
-            retcode = await _tubeDl(
+            retcode = await utube._tubeDl(
                 [message.filtered_input_str], __progress, startTime, desiredFormat, m_o_f)
         elif 'a' in message.flags:
             desiredFormat = desiredFormat1
-            retcode = await _tubeDl(
+            retcode = await utube._tubeDl(
                 [message.filtered_input_str], __progress, startTime, desiredFormat, m_o_f)
         elif 'v' in message.flags:
             desiredFormat = desiredFormat2 + '+bestaudio'
-            retcode = await _tubeDl(
+            retcode = await utube._tubeDl(
                 [message.filtered_input_str], __progress, startTime, desiredFormat, m_o_f)
         else:
-            retcode = await _tubeDl(
+            retcode = await utube._tubeDl(
                 [message.filtered_input_str],
                 __progress, startTime,
                 merge_output_format=m_o_f
             )
     else:
-        retcode = await _tubeDl([message.filtered_input_str], __progress, startTime)
+        retcode = await utube._tubeDl([message.filtered_input_str], __progress, startTime)
     if retcode == 0:
         _fpath = ''
         for _path in glob.glob(os.path.join(config.Dynamic.DOWN_PATH, str(startTime), '*')):
@@ -157,7 +156,7 @@ async def ytDown(message: Message):
 async def ytdes(message: Message):
     """ get description from a link """
     await message.edit("Hold on \u23f3 ..")
-    description = await _yt_description(message.input_or_reply_str)
+    description = await utube._yt_description(message.input_or_reply_str)
     if isinstance(description, ytdl.utils.YoutubeDLError):
         await message.err(str(description))
         return
@@ -167,86 +166,3 @@ async def ytdes(message: Message):
     else:
         out = 'No descriptions found :('
     await message.edit_or_send_as_file(out)
-
-
-@pool.run_in_thread
-def _yt_description(link):
-    try:
-        x = ytdl.YoutubeDL({'no-playlist': True, 'logger': LOGGER}).extract_info(
-            link, download=False)
-    except Exception as y_e:  # pylint: disable=broad-except
-        LOGGER.exception(y_e)
-        return y_e
-    else:
-        return x.get('description', '')
-
-
-@pool.run_in_thread
-def _yt_getInfo(link):
-    try:
-        x = ytdl.YoutubeDL(
-            {'no-playlist': True, 'logger': LOGGER}).extract_info(link, download=False)
-        thumb = x.get('thumbnail', '')
-        formats = x.get('formats', [x])
-        out = "No formats found :("
-        if formats:
-            out = "--U-ID   |   Reso.  |   Extension--\n"
-        for i in formats:
-            out += (f"`{i.get('format_id', '')} | {i.get('format_note', None)}"
-                    f" | {i.get('ext', None)}`\n")
-    except Exception as y_e:  # pylint: disable=broad-except
-        LOGGER.exception(y_e)
-        return y_e
-    else:
-        return {'thumb': thumb, 'table': out, 'uploader': x.get('uploader_id', None),
-                'title': x.get('title', None)}
-
-
-@pool.run_in_thread
-def _tubeDl(url: list, prog, starttime, uid=None, merge_output_format=None):
-    _opts = {'outtmpl': os.path.join(config.Dynamic.DOWN_PATH, str(starttime),
-                                     '%(title)s-%(format)s.%(ext)s'),
-             'logger': LOGGER,
-             'writethumbnail': True,
-             'prefer_ffmpeg': True,
-             'postprocessors': [
-                 {'key': 'FFmpegMetadata'}]}
-    if merge_output_format and merge_output_format in ('mkv', 'mp4', 'ogg', 'webm', 'flv'):
-        _opts.update({'merge_output_format': merge_output_format})
-    _quality = {'format': 'bestvideo+bestaudio/best' if not uid else str(uid)}
-    _opts.update(_quality)
-    try:
-        x = ytdl.YoutubeDL(_opts)
-        x.add_progress_hook(prog)
-        dloader = x.download(url)
-    except Exception as y_e:  # pylint: disable=broad-except
-        LOGGER.exception(y_e)
-        return y_e
-    else:
-        return dloader
-
-
-@pool.run_in_thread
-def _mp3Dl(url, prog, starttime):
-    _opts = {'outtmpl': os.path.join(config.Dynamic.DOWN_PATH, str(starttime), '%(title)s.%(ext)s'),
-             'logger': LOGGER,
-             'writethumbnail': True,
-             'prefer_ffmpeg': True,
-             'format': 'bestaudio/best',
-             'postprocessors': [
-                 {
-                     'key': 'FFmpegExtractAudio',
-                     'preferredcodec': 'mp3',
-                     'preferredquality': '320',
-                 },
-                 # {'key': 'EmbedThumbnail'},  ERROR: Conversion failed!
-                 {'key': 'FFmpegMetadata'}]}
-    try:
-        x = ytdl.YoutubeDL(_opts)
-        x.add_progress_hook(prog)
-        dloader = x.download(url)
-    except Exception as y_e:  # pylint: disable=broad-except
-        LOGGER.exception(y_e)
-        return y_e
-    else:
-        return dloader

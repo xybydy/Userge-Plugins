@@ -9,5 +9,6 @@
 """ work with youtube """
 
 import os
+from .methods import _yt_description, _yt_getInfo, _tubeDl, _mp3Dl
 
 YTDL_PYMOD = os.environ.get("YOUTUBE_DL_PATH", "yt_dlp")
