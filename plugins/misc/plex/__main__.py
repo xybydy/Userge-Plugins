@@ -120,7 +120,6 @@ def downloadUrl(url, filename, prog):
 
 
 @pool.run_in_thread
-@servers_dec
 def _search(query, search_type=None) -> list:
     global _ACTIVE_SERVER
     # for server in _SERVERS:
