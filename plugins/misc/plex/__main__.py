@@ -224,6 +224,9 @@ async def pdown(message: Message):
     global _ACTIVE_SERVER
 
     dl_path = "{}{}?download=0&X-Plex-Token={}"
+    edited = False
+    startTime = c_time = time()
+
 
     def __progress(data: dict):
         nonlocal edited, c_time
