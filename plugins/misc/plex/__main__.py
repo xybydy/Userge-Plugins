@@ -182,13 +182,14 @@ async def pservers(message: Message):
 
     query = message.input_str.strip()
     if query:
-        if query >= len(_SERVERS):
-            await message.edit(f"Invalid input for plex server number. There are {len(_SERVERS)}")
         try:
             query = int(query)
         except ValueError as e:
             await message.edit("Invalid input for plex server number. Please enter only the server number.")
         else:
+            if query >= len(_SERVERS):
+                await message.edit(f"Invalid input for plex server number. There are {len(_SERVERS)}")
+                return
             await message.edit(f"Connecting to {_SERVERS[query].name}")
             _ACTIVE_SERVER = _SERVERS[query].connect()
             await message.edit(f"Connected to {_SERVERS[query].name}")
