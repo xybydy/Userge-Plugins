@@ -274,10 +274,11 @@ async def pdown(message: Message):
             _LOG.info(f"Fa - {_ACTIVE_SERVER._baseurl} - {res.key} - {_ACTIVE_SERVER._token}")
             key = res.key
             
-            dl_path = "{}{}?download=0&X-Plex-Token={}"
-            dl_path.format(_ACTIVE_SERVER._baseurl, key, _ACTIVE_SERVER._token)
+            # dl_path = "{}{}?download=0&X-Plex-Token={}"
+            # dl_path.format(_ACTIVE_SERVER._baseurl, key, _ACTIVE_SERVER._token)
+            dl_path = f"{_ACTIVE_SERVER._baseurl}{key}?download=0&X-Plex-Token={_ACTIVE_SERVER._token}"
 
-            _LOG.info(f"FFFF - {res.url}")
+            _LOG.info(f"FFFF - {res.url()}")
             
 
             for part in res.iterParts():
