@@ -275,16 +275,12 @@ async def pdown(message: Message):
             _LOG.info(_ACTIVE_SERVER)
             key = _LATEST_RESULTS[num].key
             dl_path.format(_ACTIVE_SERVER._baseurl, key, _ACTIVE_SERVER._token)
-            _LOG.info(dl_path)
+            _LOG.info(_ACTIVE_SERVER._baseurl, key, _ACTIVE_SERVER._token)
             retcode = await downloadUrl(dl_path,filename,__progress)
             if retcode == 0:
                 await message.edit(f"**{filenmae} DOWNLOAD completed in {round(time() - startTime)} seconds**\n")
             else:
                 await message.edit(str(retcode))    
-
-
-
-
 
 
 @userge.on_cmd("purl", about={'header': "Download given plex url",
