@@ -182,6 +182,8 @@ async def pservers(message: Message):
 
     query = message.input_str.strip()
     if query:
+        if query >= len(_SERVERS):
+            await message.edit(f"Invalid input for plex server number. There are {len(_SERVERS}")
         try:
             query = int(query)
         except ValueError as e:
@@ -268,7 +270,7 @@ async def pdown(message: Message):
         except ValueError as e:
             await message.edit("Invalid input for result number. Please enter only a number.")
         else:
-            _LOG.info(_LATEST_RESULTS)
+            _LOG.info(_LATEST_RESULTS[0])
             _LOG.info(_ACTIVE_SERVER)
             part = _LATEST_RESULTS[num].find("Part")
             dl_path.format(_ACTIVE_SERVER._baseurl, part.attrib["key"], _ACTIVE_SERVER._token)
