@@ -278,11 +278,12 @@ async def pdown(message: Message):
             # dl_path.format(_ACTIVE_SERVER._baseurl, key, _ACTIVE_SERVER._token)
             dl_path = f"{_ACTIVE_SERVER._baseurl}{key}?download=0&X-Plex-Token={_ACTIVE_SERVER._token}"
 
-            _LOG.info(f"FFFF - {res.url()}")
             
 
             for part in res.iterParts():
                 filename = __get_filename(part)
+                _LOG.info(f"FFFF - {res.url('%s?download=0' % part.key,)}")
+
                 
                 retcode = await downloadUrl(dl_path,filename,__progress)
                 if retcode == 0:
