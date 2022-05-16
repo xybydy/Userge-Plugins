@@ -280,16 +280,16 @@ async def pdown(message: Message):
 
             
 
-            for part in res.iterParts():
-                filename = __get_filename(part)
-                _LOG.info(f"FFFF - {res.url('%s?download=0' % part.key,)}")
+            for item in res.iterParts():
+                for part in item.iterParts():
+                    filename = __get_filename(part)
+                    url = item.url('%s?download=0' % part.key, )
 
-                
-                retcode = await downloadUrl(dl_path,filename,__progress)
-                if retcode == 0:
-                    await message.edit(f"**{filenmae} DOWNLOAD completed in {round(time() - startTime)} seconds**\n")
-                else:
-                    await message.edit(str(retcode))    
+                    retcode = await downloadUrl(dl_path,filename,__progress)
+                    if retcode == 0:
+                        await message.edit(f"**{filenmae} DOWNLOAD completed in {round(time() - startTime)} seconds**\n")
+                    else:
+                        await message.edit(str(retcode))    
 
 
 @userge.on_cmd("purl", about={'header': "Download given plex url",
@@ -350,16 +350,7 @@ async def purl(message: Message):
             for part in item.iterParts():
                 filename = __get_filename(part)
                 url = item.url('%s?download=0' % part.key, )
-                content = f"{url}|{filename}"
-
-                # try:
-                    # dl_loc, d_in = await url_download(message,content)
-                # except ProcessCanceled:
-                #     await message.canceled()
-                #     return
-                # except Exception as e_e:  # pylint: disable=broad-except
-                #     await message.err(str(e_e))
-                #     return
+       
                 _LOG.info("download basladi")
                 retcode = await downloadUrl(url,filename,__progress)
                 _LOG.info(f"download bitti {retcode}")
