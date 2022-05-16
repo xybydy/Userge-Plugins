@@ -254,9 +254,9 @@ async def pdown(message: Message):
             userge.loop.create_task(message.edit(out))
 
 
-    if len(_LATEST_RESULTS) == 0{
+    if len(_LATEST_RESULTS) == 0:
         await message.edit("There is no results found. First make search with .psearch")
-    }
+    
 
     num = message.input_str.strip()
     if num:
