@@ -119,7 +119,7 @@ def downloadUrl(url, filename, prog):
         return dloader
 
 
-@servers_dec
+#@servers_dec
 def _search(query, search_type=None) -> list:
     global _ACTIVE_SERVER
     # for server in _SERVERS:
@@ -207,7 +207,7 @@ async def psearch(message: Message):
         await message.edit("There is no active server. Please choose a server first.")
         return
 
-    _LATEST_RESULTS = _search(message.input_str)
+    _LATEST_RESULTS = await _search(message.input_str)
 
     msg = ""
 
