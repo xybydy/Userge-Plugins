@@ -271,7 +271,7 @@ async def pdown(message: Message):
             await message.edit("Invalid input for result number. Please enter only a number.")
         else:
             res = _LATEST_RESULTS[0]
-            _LOG.info(res)
+            _LOG.info(f"Fa - {_ACTIVE_SERVER._baseurl} - {res.key} - {_ACTIVE_SERVER._token}")
             key = res.key
             
             dl_path = "{}{}?download=0&X-Plex-Token={}"
