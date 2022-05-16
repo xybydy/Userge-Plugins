@@ -172,12 +172,12 @@ async def pservers(message: Message):
     global _ACTIVE_SERVER
 
     if _CREDS  == None:
-        await message.edit("Please login to plex first.")
+        await message.edit("Please login to plex first.",del_in=5)
         return
 
     if len(_SERVERS) == 0:
         if len(_get_servers()) == 0:
-            await message.edit("There is no plex server available")
+            await message.edit("There is no plex server available",del_in=5)
             return
 
     query = message.input_str.strip()
@@ -185,20 +185,20 @@ async def pservers(message: Message):
         try:
             query = int(query)
         except ValueError as e:
-            await message.edit("Invalid input for plex server number. Please enter only the server number.")
+            await message.edit("Invalid input for plex server number. Please enter only the server number.",del_in=5)
         else:
             if query >= len(_SERVERS):
-                await message.edit(f"Invalid input for plex server number. There are {len(_SERVERS)}")
+                await message.edit(f"Invalid input for plex server number. There are {len(_SERVERS)}",del_in=5)
                 return
-            await message.edit(f"Connecting to {_SERVERS[query].name}")
+            await message.edit(f"Connecting to {_SERVERS[query].name}",del_in=5)
             _ACTIVE_SERVER = _SERVERS[query].connect()
-            await message.edit(f"Connected to {_SERVERS[query].name}")
+            await message.edit(f"Connected to {_SERVERS[query].name}",del_in=5)
     else:
         msg = ""
         for i in range(len(_SERVERS)):
             msg+=f"{i}. {_SERVERS[i].name}\n"
 
-        await message.edit(f"The servers are:\n{msg}")
+        await message.edit(f"The servers are:\n{msg}",del_in=10)
 
 @userge.on_cmd("psearch", about={'header': "Search term in plex servers",
 'usage': "{tr}psearch [term]",'examples': "{tr}psearch blade runner",
@@ -271,14 +271,6 @@ async def pdown(message: Message):
             await message.edit("Invalid input for result number. Please enter only a number.")
         else:
             res = _LATEST_RESULTS[0]
-            _LOG.info(f"Fa - {_ACTIVE_SERVER._baseurl} - {res.key} - {_ACTIVE_SERVER._token}")
-            key = res.key
-            
-            # dl_path = "{}{}?download=0&X-Plex-Token={}"
-            # dl_path.format(_ACTIVE_SERVER._baseurl, key, _ACTIVE_SERVER._token)
-            dl_path = f"{_ACTIVE_SERVER._baseurl}{key}?download=0&X-Plex-Token={_ACTIVE_SERVER._token}"
-
-            
 
             for part in res.iterParts():
                 filename = __get_filename(part)
