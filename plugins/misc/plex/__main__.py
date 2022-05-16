@@ -21,7 +21,7 @@ from plexapi import utils
 from plexapi.exceptions import BadRequest, NotFound
 from plexapi.video import Episode, Movie, Show
 
-from userge import userge, Message, get_collection, config
+from userge import userge, Message, get_collection, config,pool
 from userge.utils import get_custom_import_re, humanbytes, time_formatter
 from userge.plugins.misc.download import url_download
 from userge.utils.exceptions import ProcessCanceled
@@ -98,7 +98,8 @@ def _get_servers() -> list:
     _SERVERS = [s for s in _CREDS.resources() if 'server' in s.provides]
     return _SERVERS
 
-def download(url, filename, prog):
+@pool.run_in_thread
+def downloadUrl(url, filename, prog):
     dl_loc = os.path.join(config.Dynamic.DOWN_PATH, filename)
     
     _opts = {
@@ -284,7 +285,7 @@ async def purl(message: Message):
                 #     await message.err(str(e_e))
                 #     return
                 _LOG.info("download basladi")
-                retcode = await download(url,filename,__progress)
+                retcode = await downloadUrl(url,filename,__progress)
                 _LOG.info(f"download bitti {retcode}")
                 if retcode == 0:
                     await message.edit(f"**PLEX DOWNLOAD completed in {round(time() - startTime)} seconds**\n")
