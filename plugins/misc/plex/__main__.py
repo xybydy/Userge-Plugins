@@ -288,6 +288,6 @@ async def purl(message: Message):
                 retcode = await downloadUrl(url,filename,__progress)
                 _LOG.info(f"download bitti {retcode}")
                 if retcode == 0:
-                    await message.edit(f"**PLEX DOWNLOAD completed in {round(time() - startTime)} seconds**\n")
+                    await message.edit(f"**{filenmae} DOWNLOAD completed in {round(time() - startTime)} seconds**\n")
                 else:
                     await message.edit(str(retcode))    
