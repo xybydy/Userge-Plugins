@@ -226,7 +226,6 @@ async def pdown(message: Message):
     global _LATEST_RESULTS
     global _ACTIVE_SERVER
 
-    dl_path = "{}{}?download=0&X-Plex-Token={}"
     edited = False
     startTime = c_time = time()
 
@@ -274,8 +273,14 @@ async def pdown(message: Message):
             _LOG.info(_LATEST_RESULTS[0])
             _LOG.info(_ACTIVE_SERVER)
             key = _LATEST_RESULTS[num].key
+            
+            dl_path = "{}{}?download=0&X-Plex-Token={}"
             dl_path.format(_ACTIVE_SERVER._baseurl, key, _ACTIVE_SERVER._token)
-            _LOG.info(f"{_ACTIVE_SERVER._baseurl} - {key} - {_ACTIVE_SERVER._token}")
+
+            _LOG.info(f"{dl_path}")
+            part = _LATEST_RESULTS[0].media.iterParts()
+            _LOG.info(f"{_LATEST_RESULTS[0].getStreamURL()}")
+            #filename = __get_filename(part)
             retcode = await downloadUrl(dl_path,filename,__progress)
             if retcode == 0:
                 await message.edit(f"**{filenmae} DOWNLOAD completed in {round(time() - startTime)} seconds**\n")
