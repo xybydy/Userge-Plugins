@@ -273,8 +273,8 @@ async def pdown(message: Message):
         else:
             _LOG.info(_LATEST_RESULTS[0])
             _LOG.info(_ACTIVE_SERVER)
-            part = _LATEST_RESULTS[num].find("Part")
-            dl_path.format(_ACTIVE_SERVER._baseurl, part.attrib["key"], _ACTIVE_SERVER._token)
+            key = _LATEST_RESULTS[num].key
+            dl_path.format(_ACTIVE_SERVER._baseurl, key, _ACTIVE_SERVER._token)
             retcode = await downloadUrl(url,filename,__progress)
             if retcode == 0:
                 await message.edit(f"**{filenmae} DOWNLOAD completed in {round(time() - startTime)} seconds**\n")
