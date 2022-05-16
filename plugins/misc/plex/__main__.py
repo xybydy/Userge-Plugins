@@ -216,6 +216,70 @@ async def psearch(message: Message):
 
     await message.edit(msg)
 
+@userge.on_cmd("pdown", about={'header': "Download from latest search results",
+'usage': "{tr}pdown [num]",'examples': "{tr}psearch 4",
+"description": "Download from latest search results. Use {tr}psearch first"})
+async def pdown(message: Message):
+    global _LATEST_RESULTS
+    global _ACTIVE_SERVER
+
+    dl_path = "{}{}?download=0&X-Plex-Token={}"
+
+    def __progress(data: dict):
+        nonlocal edited, c_time
+        diff = time() - c_time
+        if (
+            data['status'] == "downloading"
+            and (not edited or diff >= config.Dynamic.EDIT_SLEEP_TIMEOUT)
+        ):
+            c_time = time()
+            edited = True
+            eta = data.get('eta')
+            speed = data.get('speed')
+            if not (eta and speed):
+                return
+            out = "**Speed** >> {}/s\n**ETA** >> {}\n".format(
+                humanbytes(speed), time_formatter(eta))
+            out += f'**File Name** >> `{data["filename"]}`\n\n'
+            current = data.get('downloaded_bytes')
+            total = data.get("total_bytes")
+            if current and total:
+                percentage = int(current) * 100 / int(total)
+                out += f"Progress >> {int(percentage)}%\n"
+                out += "[{}{}]".format(
+                    ''.join((config.FINISHED_PROGRESS_STR
+                             for _ in range(floor(percentage / 5)))),
+                    ''.join((config.UNFINISHED_PROGRESS_STR
+                             for _ in range(20 - floor(percentage / 5)))))
+            userge.loop.create_task(message.edit(out))
+
+
+    if len(_LATEST_RESULTS) == 0{
+        await message.edit("There is no results found. First make search with .psearch")
+    }
+
+    num = message.input_str.strip()
+    if num:
+        try:
+            num = int(num)
+        except ValueError as e:
+            await message.edit("Invalid input for result number. Please enter only a number.")
+        else:
+            _LOG.info(_LATEST_RESULTS)
+            _LOG.info(_ACTIVE_SERVER)
+            part = _LATEST_RESULTS[num].find("Part")
+            dl_path.format(_ACTIVE_SERVER._baseurl, part.attrib["key"], _ACTIVE_SERVER._token)
+            retcode = await downloadUrl(url,filename,__progress)
+            if retcode == 0:
+                await message.edit(f"**{filenmae} DOWNLOAD completed in {round(time() - startTime)} seconds**\n")
+            else:
+                await message.edit(str(retcode))    
+
+
+
+
+
+
 @userge.on_cmd("purl", about={'header': "Download given plex url",
                               'usage': "{tr}purl [url]",
                               'examples': "{tr}psearch [flags] URL",
