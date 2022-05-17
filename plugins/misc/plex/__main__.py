@@ -239,6 +239,7 @@ async def pdown(message: Message):
         ):
             c_time = time()
             edited = True
+            _LOG.info("FFF",data)
             eta = data.get('eta')
             speed = data.get('speed')
             if not (eta and speed):
