@@ -18,8 +18,9 @@ from time import time
 from math import floor
 
 from plexapi import utils
+from plexapi.base import Playable
 from plexapi.exceptions import BadRequest, NotFound
-from plexapi.video import Episode, Movie, Show
+from plexapi.video import Episode, Movie, Show, Season, Clip
 
 from userge import userge, Message, get_collection, config,pool
 from userge.utils import get_custom_import_re, humanbytes, time_formatter
@@ -31,14 +32,10 @@ _SERVERS: list = []
 _ACTIVE_SERVER: object = None
 _LATEST_RESULTS: list = []
 
-
-
-
 _LOG = userge.getLogger(__name__)
 _SAVED_SETTINGS = get_collection("CONFIGS")
 
-
-VALID_TYPES: tuple = (Movie, Episode, Show)
+VALID_TYPES: tuple = (Movie, Episode, Show, Clip)
 
 YTDL_PYMOD = os.environ.get("YOUTUBE_DL_PATH", "yt_dlp")
 ytdl = get_custom_import_re(YTDL_PYMOD)
@@ -219,15 +216,16 @@ async def psearch(message: Message):
 
     await message.edit(msg)
 
-@userge.on_cmd("pdown", about={'header': "Download from latest search results",
-'usage': "{tr}pdown [num]",'examples': "{tr}psearch 4",
-"description": "Download from latest search results. Use {tr}psearch first"})
-async def pdown(message: Message):
+@userge.on_cmd("psec", about={'header': "Download from latest search results",
+'usage': "{tr}psec [num]",'examples': "{tr}psec 4",
+"description": "Select item [num]. Use {tr}psearch 1"})
+async def psec(message: Message):
     global _LATEST_RESULTS
     global _ACTIVE_SERVER
 
     edited = False
     startTime = c_time = time()
+    playlist = False
 
 
     def __progress(data: dict):
@@ -239,7 +237,6 @@ async def pdown(message: Message):
         ):
             c_time = time()
             edited = True
-            _LOG.info("FFF",data)
             eta = data.get('eta')
             speed = data.get('speed')
             if not (eta and speed):
@@ -271,18 +268,24 @@ async def pdown(message: Message):
         except ValueError as e:
             await message.edit("Invalid input for result number. Please enter only a number.")
         else:
-            res = _LATEST_RESULTS[0]
+            res = _LATEST_RESULTS[num]
 
-            for part in res.iterParts():
-                filename = __get_filename(part)
-                _LOG.info(filename)
-                url = res.url('%s?download=0' % part.key,)
-                
-                retcode = await downloadUrl(url,filename,__progress)
-                if retcode == 0:
-                    await message.edit(f"**{filename} DOWNLOAD completed in {round(time() - startTime)} seconds**\n")
-                else:
-                    await message.edit(str(retcode))    
+            if issubclass(res,Playable):
+                for part in res.iterParts():
+                    filename = __get_filename(part)
+                    url = res.url('%s?download=0' % part.key,)
+                    
+                    retcode = await downloadUrl(url,filename,__progress)
+                    if retcode == 0:
+                        await message.edit(f"**{filename} DOWNLOAD completed in {round(time() - startTime)} seconds**\n")
+                    else:
+                        await message.edit(str(retcode))
+            else:
+                if issubclass(res,Show):
+                    await message.edit(f"")
+                    
+                    
+
 
 
 @userge.on_cmd("purl", about={'header': "Download given plex url",
