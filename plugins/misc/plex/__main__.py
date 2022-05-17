@@ -280,7 +280,7 @@ async def pdown(message: Message):
                 
                 retcode = await downloadUrl(url,filename,__progress)
                 if retcode == 0:
-                    await message.edit(f"**{filenmae} DOWNLOAD completed in {round(time() - startTime)} seconds**\n")
+                    await message.edit(f"**{filename} DOWNLOAD completed in {round(time() - startTime)} seconds**\n")
                 else:
                     await message.edit(str(retcode))    
 
