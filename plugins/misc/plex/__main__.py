@@ -360,6 +360,7 @@ async def purl(message: Message):
                 retcode = await downloadUrl(url,filename,__progress)
                 _LOG.info(f"download bitti {retcode}")
                 if retcode == 0:
-                    await message.edit(f"**`{filename}` DOWNLOAD completed in {round(time() - startTime)} seconds**\n")
+                    p = os.path.join(config.Dynamic.DOWN_PATH, filename)
+                    await message.edit(f"**`{p}` DOWNLOAD completed in {round(time() - startTime)} seconds**\n")
                 else:
                     await message.edit(str(retcode))    
